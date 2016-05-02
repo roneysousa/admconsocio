@@ -1,0 +1,355 @@
+unit uFrmTransferencia;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ExtCtrls, StdCtrls, Buttons, ComCtrls;
+
+type
+  TfrmTransferencia = class(TForm)
+    Panel2: TPanel;
+    btnConfirma: TBitBtn;
+    bntFechar: TBitBtn;
+    PageControl1: TPageControl;
+    TabSheet1: TTabSheet;
+    TabSheet2: TTabSheet;
+    Panel1: TPanel;
+    Label1: TLabel;
+    Label2: TLabel;
+    spClienteNovo: TSpeedButton;
+    edtCliAtual: TEdit;
+    edtNomeAtual: TEdit;
+    edtCliNovo: TEdit;
+    edtNomeNovo: TEdit;
+    Label3: TLabel;
+    edtGrupo: TEdit;
+    spGrupo: TSpeedButton;
+    edtDescricao: TEdit;
+    edtNomeCliente: TEdit;
+    edtDataContrato: TEdit;
+    Label4: TLabel;
+    Label5: TLabel;
+    Label6: TLabel;
+    edtCota: TEdit;
+    Label7: TLabel;
+    Label8: TLabel;
+    edtCDCLIE: TEdit;
+    procedure bntFecharClick(Sender: TObject);
+    procedure edtCliAtualKeyPress(Sender: TObject; var Key: Char);
+    procedure edtCliNovoKeyPress(Sender: TObject; var Key: Char);
+    procedure spClienteNovoClick(Sender: TObject);
+    procedure btnConfirmaClick(Sender: TObject);
+    procedure edtCliAtualExit(Sender: TObject);
+    procedure edtCliNovoExit(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure edtGrupoKeyPress(Sender: TObject; var Key: Char);
+    procedure edtGrupoExit(Sender: TObject);
+    procedure edtGrupoChange(Sender: TObject);
+    procedure spGrupoClick(Sender: TObject);
+    procedure edtCotaExit(Sender: TObject);
+    procedure edtCotaKeyPress(Sender: TObject; var Key: Char);
+  private
+    { Private declarations }
+    procedure Verificar_cliente;
+    procedure Testa_Cliente;
+  public
+    { Public declarations }
+  end;
+
+var
+  frmTransferencia: TfrmTransferencia;
+  M_FLTRAN, M_FLGRUP : Boolean;
+
+implementation
+
+uses uFrmLocClientes, uFuncoes, udmAdmDados, uFrmConsGrupos, uFrmAdmMain;
+
+{$R *.dfm}
+
+procedure TfrmTransferencia.bntFecharClick(Sender: TObject);
+begin
+
+     Close;
+end;
+
+procedure TfrmTransferencia.edtCliAtualKeyPress(Sender: TObject; var Key: Char);
+begin
+     If not( key in['0'..'9',#8, #13] ) then
+          key:=#0;
+end;
+
+procedure TfrmTransferencia.edtCliNovoKeyPress(Sender: TObject; var Key: Char);
+begin
+    If not( key in['0'..'9',#8, #13] ) then
+        key:=#0;
+    //
+    if (key = #13) and uFuncoes.Empty(edtCliNovo.Text) Then
+      begin
+           key := #0;
+           //
+           spClienteNovoClick(Sender);
+      End;
+end;
+
+procedure TfrmTransferencia.spClienteNovoClick(Sender: TObject);
+begin
+    edtCliNovo.SetFocus;
+    frmLocCliente := TfrmLocCliente.create(application);
+    try
+        frmLocCliente.showmodal;
+    finally
+        If not (frmLocCliente.cdsConsultar.IsEmpty) Then
+         begin
+            edtCliNovo.Text   := frmLocCliente.cdsConsultarCLI_CODIGO.AsString;
+            edtNomeNovo.Text  := frmLocCliente.cdsConsultarCLI_NOME.AsString;
+         End;
+        //
+        frmLocCliente.Release;
+        frmLocCliente := nil;
+    end;
+    //
+    if not uFuncoes.Empty(edtCliNovo.Text) Then
+       Perform(WM_NEXTDLGCTL, 0, 0);
+end;
+
+procedure TfrmTransferencia.btnConfirmaClick(Sender: TObject);
+Var
+    aDescricao, aGrupo, aCota, aCliente : String;
+    M_NRVEND : Integer;
+begin
+  // alteração 06/05/2009
+  M_FLGRUP := False;
+  M_NRVEND := dmAdmDados.cdsVendaContasCOT_NRVENDA.AsInteger;
+  //   
+  if (PageControl1.ActivePageIndex = 0) Then
+   begin
+     If not uFuncoes.Empty(edtGrupo.Text) and not uFuncoes.Empty(edtCota.Text) Then
+     begin
+        //
+         If (dmAdmDados.Verificar_Cota_Grupo_Aberta(StrtoInt(edtGrupo.Text), Strtoint(edtCota.Text)) > 0) Then
+             begin
+                 Application.MessageBox('Cota já cadastrada.','ATENÇÃO',
+                       MB_OK+ MB_ICONINFORMATION+MB_APPLMODAL);
+                 edtCota.Clear;
+                 edtGrupo.SetFocus;
+             End;
+        //
+        {If (dmAdmDados.VerificarClienteGrupoNovo(StrtoInt(edtGrupo.Text), StrtoInt(edtCDCLIE.Text))) Then
+        begin
+             Application.MessageBox('Cliente já transferido para este grupo.','ATENÇÃO',
+                  MB_OK+ MB_ICONINFORMATION+MB_APPLMODAL);
+             edtGrupo.SetFocus;
+             Exit;
+        End;}
+        //
+        aGrupo   := dmAdmDados.cdsVendaContasCOT_CDGRUPO.AsString;
+        aCota    := dmAdmDados.cdsVendaContasCOT_NRCOTA.AsString;
+        aCliente := dmAdmDados.cdsVendaContasCOT_CDCLIE.AsString;
+        //
+       If not (dmAdmDados.MigrarClienteGrupo(StrtoInt(edtGrupo.Text), StrtoInt(edtCota.Text), StrtoInt(edtCDCLIE.Text))) Then
+        begin
+             ShowMessage('Erro ao tentar realizar migração!!!');
+        End
+        Else
+        begin
+            If not (dmAdmDados.AlterarStatusparaMigrado(M_NRVEND)) Then
+                Application.MessageBox('Erro ao tentar alterar status da cota.','ATENÇÃO',
+                     MB_OK+ MB_ICONINFORMATION+MB_APPLMODAL);
+            //
+            Application.MessageBox('Migração de cliente realizada com sucesso.','Concluído',
+                    MB_OK+ MB_ICONINFORMATION+MB_APPLMODAL);
+            //
+            aDescricao := 'Migrou do G ' + aGrupo + ' | C '+ aCota + ' Para G '
+                          + edtGrupo.Text + ' C ' + edtCota.Text + ' - Cliente :'+uFuncoes.StrZero(edtCDCLIE.Text,7);
+            //
+            dmAdmDados.SetTarefa_Usuario(aDescricao);
+            dmAdmDados.AdicionarAcaoUsuario(StrtoInt(uFrmAdmMain.M_CDUSUA) , udmAdmDados.aDataMovimento, udmAdmDados.aAcaoUsuario);
+            //
+            M_FLGRUP := True;
+            Close;
+            //
+        End;
+     End   
+     Else
+     Begin
+          edtGrupo.SetFocus;
+          Exit;
+     End;
+    End;
+
+  if (PageControl1.ActivePageIndex = 1) Then
+  begin
+     if not uFuncoes.Empty(edtCliNovo.Text) Then
+      begin
+        If Application.MessageBox('Confirma transferêcia de cliente?',
+           'ATENÇÃO', MB_YESNO+MB_ICONQUESTION+MB_DEFBUTTON2+MB_APPLMODAL) = idYes then
+           begin
+               M_FLTRAN := True;
+               Close;
+           End;
+      End
+      Else
+      begin
+           edtCliNovo.SetFocus;
+           Exit;
+      End;
+   End;
+   //
+end;
+
+procedure TfrmTransferencia.edtCliAtualExit(Sender: TObject);
+begin
+     If not uFuncoes.Empty(edtCliNovo.Text) Then
+        Verificar_cliente;
+end;
+
+procedure TfrmTransferencia.Verificar_cliente;
+begin
+       If not uFuncoes.Empty(edtCliNovo.Text)
+          and not dmAdmDados.GetCodigoCliente(StrtoInt(edtCliNovo.Text)) Then
+         begin
+              edtNomeNovo.Clear;
+              edtCliNovo.SetFocus;
+              edtCliNovo.Clear;
+              raise Exception.Create('Código de cliente não cadastrado.')
+         End
+         Else
+             edtNomeNovo.Text := dmAdmDados.GetNomeCliente(StrtoInt(edtCliNovo.Text));
+end;
+
+procedure TfrmTransferencia.edtCliNovoExit(Sender: TObject);
+begin
+     If not uFuncoes.Empty(edtCliNovo.Text) Then
+      begin
+           If StrtoInt(edtCliNovo.Text) = StrtoInt(edtCliAtual.Text) Then
+            begin
+                 Application.MessageBox('Transferêcia não pode ser,'+#13+
+                                  'feita para este cliente.','ATENÇÃO',
+                     MB_OK+ MB_ICONINFORMATION+MB_APPLMODAL);
+                 edtCliNovo.Clear;
+                 edtCliNovo.SetFocus;
+                 Exit;
+            End;
+           //
+           Verificar_cliente;
+      End;
+end;
+
+procedure TfrmTransferencia.FormShow(Sender: TObject);
+begin
+     M_FLTRAN := false;
+     //
+     // PageControl1.
+     //
+     edtCDCLIE.Text       := uFuncoes.StrZero(dmAdmDados.cdsVendaContasCOT_CDCLIE.AsString,7);
+     edtNomeCliente.Text  := dmAdmDados.GetNomeCliente(dmAdmDados.cdsVendaContasCOT_CDCLIE.AsInteger);
+     edtDataContrato.Text := dmAdmDados.cdsVendaContasCOT_DTCONT.AsString;
+     edtCota.Text := '';
+     //
+     edtGrupo.SetFocus;
+end;
+
+procedure TfrmTransferencia.edtGrupoKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+    If not( key in['0'..'9',#8, #13] ) then
+        key:=#0;
+    //
+    if (key = #13) and uFuncoes.Empty(edtGrupo.Text) Then
+      begin
+           key := #0;
+           //
+           spGrupoClick(Sender);
+      End;
+end;
+
+procedure TfrmTransferencia.edtGrupoExit(Sender: TObject);
+begin
+     if not uFuncoes.Empty(edtGrupo.Text) Then
+      begin
+           if not (dmAdmDados.Verificar_Grupo(StrtoInt(edtGrupo.Text))) then
+           begin
+                edtGrupo.Clear;
+                edtGrupo.SetFocus;
+                raise Exception.Create('Código de grupo não cadastro.');
+           end;
+           //
+           If uFuncoes.Empty(edtDescricao.Text) then
+             edtDescricao.Text := dmAdmDados.GetNomeGrupo(StrtoInt(edtGrupo.Text));
+           //
+           edtCota.Text := InttoStr(dmAdmDados.GetProximaCota(StrtoInt(edtGrupo.Text)));
+           //
+           //Testa_Cliente;
+      end;
+end;
+
+procedure TfrmTransferencia.edtGrupoChange(Sender: TObject);
+begin
+      edtDescricao.Clear;
+      edtCota.Clear;
+      //
+      if uFuncoes.Empty(edtGrupo.Text) then
+      beGIN
+          edtDescricao.Clear;
+          btnConfirma.Enabled := False;
+          //cdsConsulta.Close;
+      End
+      Else
+      begin
+          //Abrir_Cotas_Grupo(StrtoInt(edtGrupo.Text));
+          btnConfirma.Enabled := True;
+      End;
+
+end;
+
+procedure TfrmTransferencia.spGrupoClick(Sender: TObject);
+begin
+      edtGrupo.SetFocus;
+      Application.CreateForm(TfrmConsGrupos, frmConsGrupos);
+      try
+          frmConsGrupos.ShowModal;
+      Finally
+          if not (frmConsGrupos.cdsConsultar.IsEmpty)   then
+          begin
+             edtGrupo.Text := frmConsGrupos.cdsConsultarGRU_CODIGO.AsString;
+             edtDescricao.Text := frmConsGrupos.cdsConsultarGRU_DESCRICAO.AsString;
+          end;
+          //
+          frmConsGrupos.Free;
+      End;
+end;
+
+procedure TfrmTransferencia.Testa_Cliente;
+begin
+     If (dmAdmDados.VerificarClienteGrupoNovo(StrtoInt(edtGrupo.Text), StrtoInt(edtCDCLIE.Text))) Then
+       begin
+            Application.MessageBox('Cliente já transferido para este grupo.','ATENÇÃO',
+                 MB_OK+ MB_ICONINFORMATION+MB_APPLMODAL);
+            edtGrupo.SetFocus;
+            Exit;
+       End;
+end;
+
+procedure TfrmTransferencia.edtCotaExit(Sender: TObject);
+begin
+     If not uFuncoes.Empty(edtCota.Text) Then
+      begin
+           If (dmAdmDados.Verificar_Cota_Grupo_Aberta(StrtoInt(edtGrupo.Text), Strtoint(edtCota.Text)) > 0) Then
+             begin
+                 Application.MessageBox('Cota já cadastrada.','ATENÇÃO',
+                       MB_OK+ MB_ICONINFORMATION+MB_APPLMODAL);
+                 edtCota.Clear;
+                 edtGrupo.SetFocus;
+             End;
+      End;
+end;
+
+procedure TfrmTransferencia.edtCotaKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+    If not( key in['0'..'9',#8, #13] ) then
+        key:=#0;
+end;
+
+end.

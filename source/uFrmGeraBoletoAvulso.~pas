@@ -1,0 +1,362 @@
+unit uFrmGeraBoletoAvulso;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ExtCtrls, StdCtrls, Buttons, FMTBcd, DB, SqlExpr, DBClient,
+  Provider, CurrEdit, Mask, ToolEdit, Grids, DBGrids;
+
+type
+  TfrmBoletoAvulso = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    btnOK: TBitBtn;
+    btnFechar: TBitBtn;
+    Label1: TLabel;
+    edtGrupo: TEdit;
+    Label2: TLabel;
+    edtCota: TEdit;
+    Label3: TLabel;
+    edtCliente: TEdit;
+    btnConsulta: TBitBtn;
+    Panel4: TPanel;
+    dstConsulta: TSQLDataSet;
+    lblNomeGrupo: TEdit;
+    dspConsulta: TDataSetProvider;
+    cdsConsulta: TClientDataSet;
+    cdsConsultaCOT_NRVENDA: TIntegerField;
+    cdsConsultaCOT_CDGRUPO: TIntegerField;
+    cdsConsultaCOT_NRCOTA: TIntegerField;
+    cdsConsultaCOT_CDCLIE: TIntegerField;
+    cdsConsultaCOT_CONTRATO: TStringField;
+    cdsConsultaCOT_PLANO: TIntegerField;
+    cdsConsultaCOT_POSICAO: TStringField;
+    cdsConsultaCOT_DTCONT: TDateField;
+    cdsConsultaCOT_VALCRE: TFMTBCDField;
+    cdsConsultaCOT_FLCONTEMPLADO: TStringField;
+    cdsConsultaCOT_CDBANCO: TIntegerField;
+    cdsConsultaCOT_NMBANCO: TStringField;
+    cdsConsultaCLI_CODIGO: TIntegerField;
+    cdsConsultaCLI_NOME: TStringField;
+    cdsConsultaCLI_CGC: TStringField;
+    cdsConsultaCLI_CPF: TStringField;
+    cdsConsultaCLI_NRIDEN: TStringField;
+    cdsConsultaCLI_DTNASCIMENTO: TDateField;
+    cdsConsultaCLI_ENDERECO: TStringField;
+    cdsConsultaCLI_NUMCEP: TStringField;
+    cdsConsultaCLI_BAIRRO: TStringField;
+    cdsConsultaCLI_CIDADE: TStringField;
+    cdsConsultaCLI_UFCLIE: TStringField;
+    cdsConsultaCLI_NRPLACA: TStringField;
+    edtVenda: TEdit;
+    Label4: TLabel;
+    Label5: TLabel;
+    edbDTEMISSAO: TDateEdit;
+    Label6: TLabel;
+    edtDTVENC: TDateEdit;
+    Label7: TLabel;
+    edtValor: TCurrencyEdit;
+    Label8: TLabel;
+    edtQuant: TCurrencyEdit;
+    dbgridParcelas: TDBGrid;
+    dsParcelas: TDataSource;
+    mmoIntrucoes: TMemo;
+    Label9: TLabel;
+    procedure btnFecharClick(Sender: TObject);
+    procedure edtGrupoExit(Sender: TObject);
+    procedure edtGrupoChange(Sender: TObject);
+    procedure edtCotaKeyPress(Sender: TObject; var Key: Char);
+    procedure edtGrupoKeyPress(Sender: TObject; var Key: Char);
+    procedure btnConsultaClick(Sender: TObject);
+    procedure edtCotaChange(Sender: TObject);
+    procedure edbDTEMISSAOExit(Sender: TObject);
+    procedure edtDTVENCExit(Sender: TObject);
+    procedure edtQuantExit(Sender: TObject);
+    procedure edtQuantEnter(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure btnOKClick(Sender: TObject);
+    procedure edtValorExit(Sender: TObject);
+    procedure edtValorEnter(Sender: TObject);
+  private
+    { Private declarations }
+    Function Consulta(iGrupo, iCota : Integer) : Boolean;
+    Procedure Limpar;
+    Procedure LimparGrid;
+  public
+    { Public declarations }
+  end;
+
+var
+  frmBoletoAvulso: TfrmBoletoAvulso;
+
+implementation
+
+uses udmAdmDados, uFuncoes, uFrmAdmMain;
+
+{$R *.dfm}
+
+procedure TfrmBoletoAvulso.btnFecharClick(Sender: TObject);
+begin
+      Close;
+end;
+
+procedure TfrmBoletoAvulso.edtGrupoExit(Sender: TObject);
+begin
+     if not uFuncoes.Empty(edtGrupo.Text) Then
+      begin
+           if not (dmAdmDados.Verificar_Grupo(StrtoInt(edtGrupo.Text))) then
+           begin
+                edtGrupo.SetFocus;
+                raise Exception.Create('Código de grupo não cadastro.');
+           end;
+           //
+           If uFuncoes.Empty(lblNomeGrupo.Text) then
+              lblNomeGrupo.Text := dmAdmDados.GetNomeGrupo(StrtoInt(edtGrupo.Text));
+           //
+      end;
+end;
+
+procedure TfrmBoletoAvulso.edtGrupoChange(Sender: TObject);
+begin
+    If uFuncoes.Empty(edtGrupo.Text) then
+        lblNomeGrupo.Clear;
+end;
+
+procedure TfrmBoletoAvulso.edtCotaKeyPress(Sender: TObject; var Key: Char);
+begin
+    if not( key in['0'..'9', #8, #13] ) then
+      key:=#0;
+end;
+
+procedure TfrmBoletoAvulso.edtGrupoKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+    if not( key in['0'..'9', #8, #13] ) then
+      key:=#0;
+end;
+
+procedure TfrmBoletoAvulso.btnConsultaClick(Sender: TObject);
+begin
+     If uFuncoes.Empty(edtGrupo.Text) Then
+       begin
+            edtGrupo.SetFocus;
+            Exit;
+       End;
+       //
+     If uFuncoes.Empty(edtCota.Text) Then
+       begin
+            edtCota.SetFocus;
+            Exit;
+       End;
+       //
+     if not uFuncoes.Empty(edtGrupo.Text)
+       and not uFuncoes.Empty(edtCota.Text) Then
+          If not(Consulta(StrtoInt(edtGrupo.Text), StrtoInt(edtCota.Text))) Then
+              Application.MessageBox(PChar('Cota do grupo não está ativa ou não existe.'),
+                 'ATENÇÃO', MB_OK+MB_ICONINFORMATION+MB_APPLMODAL);
+end;
+
+function TfrmBoletoAvulso.Consulta(iGrupo, iCota: Integer): Boolean;
+begin
+      Result := False;
+      with cdsConsulta do
+        begin
+            Close;
+            Params[0].AsInteger := iGrupo;
+            Params[1].AsInteger := iCota;
+            Params[2].AsString  := 'A';
+            Open;
+            //
+            if not (IsEmpty) then
+             begin
+                  Result := true;
+                  edtCliente.Text := FieldByName('CLI_NOME').AsString;
+                  edtVenda.Text   := FieldByName('COT_NRVENDA').AsString;
+             End
+             Else
+             begin
+                 edtVenda.Clear;
+                 edtCliente.Clear;
+             End;
+        End;
+end;
+
+procedure TfrmBoletoAvulso.edtCotaChange(Sender: TObject);
+begin
+     If uFuncoes.Empty(edtCota.Text) Then
+        edtCliente.Clear;
+end;
+
+procedure TfrmBoletoAvulso.edbDTEMISSAOExit(Sender: TObject);
+begin
+     If (edbDTEMISSAO.Text <> '  /  /    ') Then
+     Begin
+          try
+              StrToDate(edbDTEMISSAO.Text);
+              edbDTEMISSAO.Text := DatetoStr(edbDTEMISSAO.Date);
+              //
+           except
+                on EConvertError do
+                Begin
+                     Application.MessageBox(PChar('Data Inválida!!!'),
+                         'ATENÇÃO', MB_OK+MB_ICONINFORMATION+MB_APPLMODAL);
+                     edbDTEMISSAO.Clear;
+                     edbDTEMISSAO.SetFocus;
+                End;
+           end;
+     End;
+end;
+
+procedure TfrmBoletoAvulso.edtDTVENCExit(Sender: TObject);
+begin
+     If (edtDTVENC.Text <> '  /  /    ') Then
+     Begin
+          try
+              StrToDate(edtDTVENC.Text);
+              edtDTVENC.Text := DatetoStr(edtDTVENC.Date);
+              //
+              if (edtDTVENC.Date < edbDTEMISSAO.Date) Then
+                begin
+                     Application.MessageBox(PChar('Data de vencimento deve ser maior que a de emissão.'),
+                         'ATENÇÃO', MB_OK+MB_ICONINFORMATION+MB_APPLMODAL);
+                     edtDTVENC.Date := Date();
+                     edtDTVENC.SetFocus;
+                     Exit;
+                End;
+           except
+                on EConvertError do
+                Begin
+                     Application.MessageBox(PChar('Data Inválida!!!'),
+                         'ATENÇÃO', MB_OK+MB_ICONINFORMATION+MB_APPLMODAL);
+                     edtDTVENC.Clear;
+                     edtDTVENC.SetFocus;
+                End;
+           end;
+     End;
+end;
+
+procedure TfrmBoletoAvulso.edtQuantExit(Sender: TObject);
+begin
+      if (edtDTVENC.Text <> '  /  /    ')
+        and (edtValor.Value > 0)
+        and (edtQuant.Value > 0) Then
+        begin
+             dmAdmDados.CriarParcelas(
+               StrtoInt(edtQuant.text), edtDTVENC.Date, edtValor.Value);
+        End;
+end;
+
+procedure TfrmBoletoAvulso.edtQuantEnter(Sender: TObject);
+begin
+     LimparGrid;
+end;
+
+procedure TfrmBoletoAvulso.FormShow(Sender: TObject);
+begin
+      edbDTEMISSAO.Date := Date();
+end;
+
+procedure TfrmBoletoAvulso.btnOKClick(Sender: TObject);
+Var
+   M_PCINICIAL : Integer;
+   aDescricao : String;
+begin
+     if uFuncoes.Empty(edtGrupo.Text) Then
+      begin
+           Application.MessageBox(PChar('Digite o código de grupo do cliente.'),
+                'ATENÇÃO', MB_OK+MB_ICONINFORMATION+MB_APPLMODAL);
+           edtGrupo.SetFocus;
+           Exit;
+      End;
+      //
+      If uFuncoes.Empty(edtCota.Text) Then
+      begin
+           Application.MessageBox(PChar('Digite o número da cota.'),
+                'ATENÇÃO', MB_OK+MB_ICONINFORMATION+MB_APPLMODAL);
+           edtCota.SetFocus;
+           Exit;
+      End;
+      //
+      if (dmAdmDados.cdsParcelaBoleto.IsEmpty) Then
+        begin
+           Application.MessageBox(PChar('Informe os dados do boleto.'),
+                'ATENÇÃO', MB_OK+MB_ICONINFORMATION+MB_APPLMODAL);
+           edtDTVENC.SetFocus;
+           Exit;
+        End;
+      //
+     If Application.MessageBox('Confirma geração de boleto?',
+         'ATENÇÃO', MB_YESNO+MB_ICONQUESTION+MB_DEFBUTTON2+MB_APPLMODAL) = idYes then
+      begin
+           With dmAdmDados.cdsParcelaBoleto do
+            begin
+                 DisableControls;
+                 First;
+                 M_PCINICIAL := cdsConsultaCOT_PLANO.AsInteger + 1;
+                 //
+                 While not (Eof) do
+                 begin
+                     dmAdmDados.Incluir_Parcela_Boleto_avulso(
+                       cdsConsultaCOT_CDGRUPO.AsInteger, cdsConsultaCOT_NRCOTA.AsInteger,
+                       cdsConsultaCOT_NRVENDA.AsInteger, M_PCINICIAL, cdsConsultaCOT_CDBANCO.AsInteger,
+                       FieldByname('PAR_VENCIMENTO').AsDateTime, FieldByname('PAR_VALOR').AsFloat, mmoIntrucoes.Lines.Text);
+                      //
+                      aDescricao := 'Incluiu Boleto Avulso G : '+edtGrupo.Text + ' | C '+ edtCota.Text + ' | V '+edtVenda.Text
+                            + ' | Dt.Venc.:' + FieldByname('PAR_VENCIMENTO').AsString +' | Valor:'+FormatFloat('###,##0.#0',edtValor.Value);
+                      dmAdmDados.SetTarefa_Usuario(aDescricao);
+                      dmAdmDados.AdicionarAcaoUsuario(StrtoInt(uFrmAdmMain.M_CDUSUA) , udmAdmDados.aDataMovimento, udmAdmDados.aAcaoUsuario);
+                      //
+                      M_PCINICIAL := M_PCINICIAL + 1;
+                      Next;
+                 End;
+                 EnableControls;
+            End;
+            //
+            Application.MessageBox(PChar(MSG_OK),
+                 'ATENÇÃO', MB_OK+MB_ICONINFORMATION+MB_APPLMODAL);
+            //
+            Limpar;
+     End;
+end;
+
+procedure TfrmBoletoAvulso.Limpar;
+begin
+    edtGrupo.Clear;
+    edtCota.Clear;
+    lblNomeGrupo.Clear;
+    edtCliente.Clear;
+    edtDTVENC.Clear;
+    edtValor.Clear;
+    edtVenda.Clear;
+    edtQuant.Value := 1;
+    dmAdmDados.cdsParcelaBoleto.Close;
+end;
+
+procedure TfrmBoletoAvulso.edtValorExit(Sender: TObject);
+begin
+     If (edtValor.Value = 0) Then
+      begin
+            Application.MessageBox(PChar('Digite o um valor superior a zero.'),
+                 'ATENÇÃO', MB_OK+MB_ICONINFORMATION+MB_APPLMODAL);
+            edtValor.SetFocus;
+            Exit;
+      End;
+end;
+
+procedure TfrmBoletoAvulso.LimparGrid;
+begin
+     if (dmAdmDados.cdsParcelaBoleto.Active) Then
+      begin
+           dmAdmDados.cdsParcelaBoleto.EmptyDataSet;
+           dmAdmDados.cdsParcelaBoleto.Close;
+      End;
+end;
+
+procedure TfrmBoletoAvulso.edtValorEnter(Sender: TObject);
+begin
+     LimparGrid;
+end;
+
+end.

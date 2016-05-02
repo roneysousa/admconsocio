@@ -1,0 +1,246 @@
+unit uFrmAtualizaBanco;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ComCtrls, ExtCtrls, StdCtrls, Buttons, Grids, DBGrids, FMTBcd,
+  DB, SqlExpr, DBClient, Provider, DBCtrls, Mask, ToolEdit;
+
+type
+  TfrmAtualizarBanco = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    PageControl1: TPageControl;
+    Panel3: TPanel;
+    grdConsultar: TDBGrid;
+    TabSheet1: TTabSheet;
+    DBGrid1: TDBGrid;
+    BitBtn1: TBitBtn;
+    dstCotas: TSQLDataSet;
+    dstCotasCOT_NRVENDA: TIntegerField;
+    dstCotasCOT_CDGRUPO: TIntegerField;
+    dstCotasCOT_NRCOTA: TIntegerField;
+    dstCotasCOT_CDCLIE: TIntegerField;
+    dstCotasCOT_POSICAO: TStringField;
+    dstCotasCOT_DTCONT: TDateField;
+    dstCotasCOT_CDBANCO: TIntegerField;
+    dspCotas: TDataSetProvider;
+    cdsCotas: TClientDataSet;
+    dsCotas: TDataSource;
+    DBNavigator1: TDBNavigator;
+    Label1: TLabel;
+    dstParcelas: TSQLDataSet;
+    dstParcelasREC_NRVEND: TIntegerField;
+    dstParcelasREC_CDGRUP: TIntegerField;
+    dstParcelasREC_NRCOTA: TIntegerField;
+    dstParcelasREC_NRPARC: TIntegerField;
+    dstParcelasREC_CDBANC: TIntegerField;
+    dstParcelasREC_DTVENC: TDateField;
+    dstParcelasREC_DTPAGA: TDateField;
+    dstParcelasREC_VLPARC: TFMTBCDField;
+    dstParcelasREC_TOTAL_PAGO: TFMTBCDField;
+    dstParcelasREC_NOSSONUMERO: TStringField;
+    dspParcelas: TDataSetProvider;
+    cdsParcelas: TClientDataSet;
+    dsParcela: TDataSource;
+    cdsParcelasREC_NRVEND: TIntegerField;
+    cdsParcelasREC_CDGRUP: TIntegerField;
+    cdsParcelasREC_NRCOTA: TIntegerField;
+    cdsParcelasREC_NRPARC: TIntegerField;
+    cdsParcelasREC_CDBANC: TIntegerField;
+    cdsParcelasREC_DTVENC: TDateField;
+    cdsParcelasREC_DTPAGA: TDateField;
+    cdsParcelasREC_VLPARC: TFMTBCDField;
+    cdsParcelasREC_TOTAL_PAGO: TFMTBCDField;
+    cdsParcelasREC_NOSSONUMERO: TStringField;
+    edtData: TDateEdit;
+    Label2: TLabel;
+    cdsCotasCOT_NRVENDA: TIntegerField;
+    cdsCotasCOT_CDGRUPO: TIntegerField;
+    cdsCotasCOT_NRCOTA: TIntegerField;
+    cdsCotasCOT_CDCLIE: TIntegerField;
+    cdsCotasCOT_POSICAO: TStringField;
+    cdsCotasCOT_DTCONT: TDateField;
+    cdsCotasCOT_CDBANCO: TIntegerField;
+    btnAtualizar: TBitBtn;
+    Label3: TLabel;
+    procedure BitBtn1Click(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure dsCotasDataChange(Sender: TObject; Field: TField);
+    procedure dsCotasStateChange(Sender: TObject);
+    procedure grdConsultarDblClick(Sender: TObject);
+    procedure btnAtualizarClick(Sender: TObject);
+  private
+    { Private declarations }
+    Procedure Seleciona_Dados(iBanco : Integer);
+    Procedure Abrir_Parcelas(iVenda, iBanco : Integer; aDataVenc : TDate);
+  public
+    { Public declarations }
+  end;
+
+var
+  frmAtualizarBanco: TfrmAtualizarBanco;
+
+implementation
+
+uses udmAdmDados, uFuncoes;
+
+{$R *.dfm}
+
+procedure TfrmAtualizarBanco.BitBtn1Click(Sender: TObject);
+begin
+      Close;
+end;
+
+procedure TfrmAtualizarBanco.Seleciona_Dados(iBanco: Integer);
+begin
+      With cdsCotas do
+        begin
+             DisableControls;
+             Close;
+             Params.ParamByName('pBANCO').AsInteger  := iBanco;
+             Params.ParamByName('pPOSICAO').AsString := 'A';
+             Open;
+             First;
+             EnableControls;
+        End;
+end;
+
+procedure TfrmAtualizarBanco.FormShow(Sender: TObject);
+begin
+     Seleciona_Dados(1);
+end;
+
+procedure TfrmAtualizarBanco.dsCotasDataChange(Sender: TObject;
+  Field: TField);
+begin
+    If (dsCotas.DataSet.Active) and not (dsCotas.DataSet.IsEmpty) Then
+    begin
+        Abrir_Parcelas(dsCotas.DataSet.FieldByName('COT_NRVENDA').AsInteger,
+                       dsCotas.DataSet.FieldByName('COT_CDBANCO').AsInteger,
+                       edtData.Date);
+        Label1.Caption := 'Registro(s): '+InttoStr(dsCotas.DataSet.RecNo) + '/'+
+                       InttoStr(dsCotas.DataSet.RecordCount);
+    End;
+end;
+
+procedure TfrmAtualizarBanco.Abrir_Parcelas(iVenda, iBanco: Integer;
+  aDataVenc: TDate);
+begin
+     With cdsParcelas do
+      begin
+           DisableControls;
+           Close;
+           Params.ParamByName('pVENDA').AsInteger  := iVenda;
+           Params.ParamByName('pBANCO').AsInteger  := iBanco;
+           Params.ParamByName('pDTVENC').AsDate    := aDataVenc;
+           Open;
+           First;
+           EnableControls;
+      End;
+end;
+
+procedure TfrmAtualizarBanco.dsCotasStateChange(Sender: TObject);
+begin
+ { If (dsCotas.DataSet.Active) and not (dsCotas.DataSet.IsEmpty) Then
+    begin
+        Abrir_Parcelas(dsCotas.DataSet.FieldByName('COT_NRVENDA').AsInteger,
+                       dsCotas.DataSet.FieldByName('COT_CDBANCO').AsInteger,
+                       edtData.Date);
+    End;}
+end;
+
+procedure TfrmAtualizarBanco.grdConsultarDblClick(Sender: TObject);
+begin
+    If (dsCotas.DataSet.Active) and not (dsCotas.DataSet.IsEmpty) Then
+    begin
+        Abrir_Parcelas(dsCotas.DataSet.FieldByName('COT_NRVENDA').AsInteger,
+                       dsCotas.DataSet.FieldByName('COT_CDBANCO').AsInteger,
+                       edtData.Date);
+    End;
+end;
+
+procedure TfrmAtualizarBanco.btnAtualizarClick(Sender: TObject);
+Var
+   iVenda, iBanco, iBancoNovo : Integer;
+   aDtVenc : TDate;
+begin
+   If not (cdsCotas.IsEmpty) Then
+   begin
+     If Application.MessageBox('Atualizar dados do banco?',
+         'ATENÇÃO', MB_YESNO+MB_ICONQUESTION+MB_DEFBUTTON2+MB_APPLMODAL) = idYes then
+       begin
+          try
+             Screen.Cursor := crHourGlass;
+            aDtVenc := edtData.Date;
+            iBancoNovo := 5;
+            dmAdmDados.Start;
+            try
+                 With cdsCotas do
+                 begin
+                      First;
+                      While not (Eof) do
+                      begin
+                           Edit;
+                           iVenda := FieldByName('COT_NRVENDA').AsInteger;
+                           iBanco := FieldByName('COT_CDBANCO').AsInteger;
+                           // Atualiza Cota
+                           FieldByName('COT_CDBANCO').AsInteger := iBancoNovo;
+                           Post;
+                           //
+                           Abrir_Parcelas(iVenda, iBanco, aDtVenc);
+                           // Atualiza Parcela
+                           if not (cdsParcelas.IsEmpty) Then
+                            begin
+                                 cdsParcelas.First;
+                                 While not (cdsParcelas.Eof) do
+                                 begin
+                                      if (cdsParcelasREC_NRVEND.AsInteger = iVenda) and
+                                         (cdsParcelasREC_CDBANC.AsInteger = iBanco) Then
+                                      begin
+                                           cdsParcelas.Edit;
+                                           cdsParcelasREC_CDBANC.AsInteger := iBancoNovo;
+                                           if not uFuncoes.Empty(cdsParcelasREC_NOSSONUMERO.AsString) Then
+                                               cdsParcelasREC_NOSSONUMERO.AsString := '';
+                                           //
+                                           cdsParcelas.Post;
+                                           //
+                                           Label3.Caption := 'Atualizando parcela : '+ InttoStr(cdsParcelas.RecNo)+'/'+InttoStr(cdsParcelas.RecordCount);
+                                           Application.ProcessMessages;
+                                      End;
+                                      //
+                                      cdsParcelas.Next;
+                                      //
+                                 End;  // fim-while
+                                 cdsParcelas.ApplyUpdates(0);
+                            End;
+                           //
+                           Next;
+                      End;
+                      //
+                      ApplyUpdates(0);
+                 End;  // fim-with
+                 dmAdmDados.Comit(Transc);
+                 //
+                 Label3.Caption := 'Atualização concluída.';
+                 //
+                 Application.MessageBox('Atualização realizada com sucesso.','ATENÇÃO',
+                     MB_OK+MB_ICONINFORMATION+MB_APPLMODAL);
+                 //
+                 Close;
+            Except
+                 dmAdmDados.Rollback;
+            End;
+         finally
+              Screen.Cursor := crDefault;
+         end;
+         Application.ProcessMessages;
+       End;
+   End
+   Else
+       Application.MessageBox('Não há dados para atualizar.','ATENÇÃO',
+                     MB_OK+MB_ICONEXCLAMATION+MB_APPLMODAL);
+end;
+
+end.

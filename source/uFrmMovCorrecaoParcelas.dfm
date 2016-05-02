@@ -1,0 +1,375 @@
+object frmCorrecaoParcelas: TfrmCorrecaoParcelas
+  Left = 156
+  Top = 65
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'Corre'#231#227'o de Parcelas'
+  ClientHeight = 456
+  ClientWidth = 603
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 603
+    Height = 113
+    Align = alTop
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 16
+      Top = 56
+      Width = 51
+      Height = 13
+      Caption = 'Valor Atual'
+      Transparent = True
+    end
+    object Label8: TLabel
+      Left = 144
+      Top = 56
+      Width = 78
+      Height = 13
+      Caption = 'Data Refer'#234'ncia'
+      Transparent = True
+    end
+    object Label2: TLabel
+      Left = 16
+      Top = 16
+      Width = 71
+      Height = 13
+      Caption = 'C'#243'digo Modelo'
+      Transparent = True
+    end
+    object spLocModelo: TSpeedButton
+      Left = 91
+      Top = 31
+      Width = 23
+      Height = 22
+      Flat = True
+      Glyph.Data = {
+        F6000000424DF600000000000000760000002800000010000000100000000100
+        0400000000008000000000000000000000001000000000000000000000000000
+        80000080000000808000800000008000800080800000C0C0C000808080000000
+        FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00777777777777
+        7777777777777777777777770077777777777770FF077777777777077FF07777
+        7777770777FF077777777770777FFF00777777790777F1111077777790771117
+        0B77777770799170B77777777709990B77777777770990B77777777777090B77
+        777777777770B777777777777777777777777777777777777777}
+    end
+    object lbl_CDMODE: TLabel
+      Left = 120
+      Top = 37
+      Width = 13
+      Height = 13
+      Caption = '...'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlue
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object Label3: TLabel
+      Left = 274
+      Top = 56
+      Width = 75
+      Height = 13
+      Caption = '% de Acrescimo'
+      Transparent = True
+    end
+    object edtValor: TCurrencyEdit
+      Left = 16
+      Top = 71
+      Width = 121
+      Height = 21
+      AutoSize = False
+      DisplayFormat = ',0.00;-,0.00'
+      TabOrder = 1
+    end
+    object edtData: TDateEdit
+      Left = 144
+      Top = 71
+      Width = 121
+      Height = 21
+      NumGlyphs = 2
+      TabOrder = 2
+      OnChange = edtDataChange
+      OnExit = edtDataExit
+    end
+    object btnConfirma: TBitBtn
+      Left = 416
+      Top = 66
+      Width = 75
+      Height = 25
+      Caption = 'Confirme'
+      Default = True
+      TabOrder = 3
+      OnClick = btnConfirmaClick
+      Glyph.Data = {
+        DE010000424DDE01000000000000760000002800000024000000120000000100
+        0400000000006801000000000000000000001000000000000000000000000000
+        80000080000000808000800000008000800080800000C0C0C000808080000000
+        FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333333333
+        3333333333333333333333330000333333333333333333333333F33333333333
+        00003333344333333333333333388F3333333333000033334224333333333333
+        338338F3333333330000333422224333333333333833338F3333333300003342
+        222224333333333383333338F3333333000034222A22224333333338F338F333
+        8F33333300003222A3A2224333333338F3838F338F33333300003A2A333A2224
+        33333338F83338F338F33333000033A33333A222433333338333338F338F3333
+        0000333333333A222433333333333338F338F33300003333333333A222433333
+        333333338F338F33000033333333333A222433333333333338F338F300003333
+        33333333A222433333333333338F338F00003333333333333A22433333333333
+        3338F38F000033333333333333A223333333333333338F830000333333333333
+        333A333333333333333338330000333333333333333333333333333333333333
+        0000}
+      NumGlyphs = 2
+    end
+    object edtCDMODE: TEdit
+      Left = 16
+      Top = 32
+      Width = 73
+      Height = 21
+      MaxLength = 4
+      TabOrder = 0
+      OnChange = edtCDMODEChange
+      OnExit = edtCDMODEExit
+      OnKeyPress = edtCDMODEKeyPress
+    end
+    object edtPerc: TCurrencyEdit
+      Left = 274
+      Top = 71
+      Width = 121
+      Height = 21
+      AutoSize = False
+      DisplayFormat = ',0.00;-,0.00'
+      MaxValue = 50.000000000000000000
+      ReadOnly = True
+      TabOrder = 4
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 153
+    Width = 603
+    Height = 162
+    Align = alClient
+    TabOrder = 1
+    object grdConsultar: TDBGrid
+      Left = 1
+      Top = 1
+      Width = 601
+      Height = 160
+      Align = alClient
+      Ctl3D = False
+      DataSource = dsCotas
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgConfirmDelete, dgCancelOnExit]
+      ParentCtl3D = False
+      ParentFont = False
+      ReadOnly = True
+      TabOrder = 0
+      TitleFont.Charset = ANSI_CHARSET
+      TitleFont.Color = clWindowText
+      TitleFont.Height = -11
+      TitleFont.Name = 'Verdana'
+      TitleFont.Style = []
+      Columns = <
+        item
+          Expanded = False
+          FieldName = 'COT_CDGRUPO'
+          Title.Caption = 'Grupo'
+          Width = 43
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'COT_NRCOTA'
+          Title.Caption = 'Cota'
+          Width = 43
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'COT_PLANO'
+          Title.Caption = 'Plano'
+          Width = 56
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'COT_NRVENDA'
+          Title.Caption = 'Venda'
+          Width = 50
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'COT_VALCRE'
+          Title.Caption = 'Valor Cr'#233'dito'
+          Width = 83
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'COT_CDMODELO'
+          Title.Caption = 'C'#243'd.Modelo'
+          Width = 70
+          Visible = True
+        end
+        item
+          Alignment = taCenter
+          Expanded = False
+          FieldName = 'COT_POSICAO'
+          Title.Alignment = taCenter
+          Title.Caption = 'Posi'#231#227'o'
+          Visible = True
+        end>
+    end
+  end
+  object Panel4: TPanel
+    Left = 0
+    Top = 315
+    Width = 603
+    Height = 24
+    Align = alBottom
+    TabOrder = 2
+  end
+  object Panel5: TPanel
+    Left = 0
+    Top = 339
+    Width = 603
+    Height = 117
+    Align = alBottom
+    TabOrder = 3
+    object DBGParcelas: TDBGrid
+      Left = 1
+      Top = 1
+      Width = 601
+      Height = 115
+      Align = alClient
+      Ctl3D = False
+      DataSource = dsParcelas
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgConfirmDelete, dgCancelOnExit]
+      ParentCtl3D = False
+      ParentFont = False
+      ReadOnly = True
+      TabOrder = 0
+      TitleFont.Charset = ANSI_CHARSET
+      TitleFont.Color = clWindowText
+      TitleFont.Height = -11
+      TitleFont.Name = 'Verdana'
+      TitleFont.Style = []
+      Columns = <
+        item
+          Alignment = taCenter
+          Expanded = False
+          FieldName = 'REC_NRPARC'
+          Title.Alignment = taCenter
+          Title.Caption = 'PC'
+          Width = 43
+          Visible = True
+        end
+        item
+          Alignment = taCenter
+          Expanded = False
+          FieldName = 'REC_DTVENC'
+          Title.Alignment = taCenter
+          Title.Caption = 'Vencimento'
+          Width = 76
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'REC_VLPARC'
+          Title.Alignment = taRightJustify
+          Title.Caption = 'Valor Parcela'
+          Width = 92
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'REC_TOTAL_PAGO'
+          Title.Alignment = taRightJustify
+          Title.Caption = 'Total Pago'
+          Width = 93
+          Visible = True
+        end>
+    end
+  end
+  object DBGrid1: TDBGrid
+    Left = 0
+    Top = 113
+    Width = 603
+    Height = 40
+    Align = alTop
+    Ctl3D = False
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgConfirmDelete, dgCancelOnExit]
+    ParentCtl3D = False
+    ParentFont = False
+    ReadOnly = True
+    TabOrder = 4
+    TitleFont.Charset = ANSI_CHARSET
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -11
+    TitleFont.Name = 'Verdana'
+    TitleFont.Style = []
+    Visible = False
+    Columns = <
+      item
+        Expanded = False
+        FieldName = 'MOD_CODIGO'
+        Title.Caption = 'C'#243'digo'
+        Width = 43
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'MOD_DESCRICAO'
+        Title.Caption = 'Grupo'
+        Width = 213
+        Visible = True
+      end>
+  end
+  object dsLista: TDataSource
+    AutoEdit = False
+    DataSet = dmAdmDados.cdsListaModelos2
+    Left = 344
+    Top = 97
+  end
+  object dsCotas: TDataSource
+    AutoEdit = False
+    DataSet = dmAdmDados.cdsCotasGrupoModelos
+    OnDataChange = dsCotasDataChange
+    Left = 192
+    Top = 217
+  end
+  object dsParcelas: TDataSource
+    DataSet = dmPesquisas.cdsConsultaCota
+    Left = 368
+    Top = 344
+  end
+end
